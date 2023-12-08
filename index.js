@@ -1,32 +1,51 @@
 // index.js
-// where your node app starts
-
-// init project
 var express = require('express');
 var app = express();
 
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC 
 var cors = require('cors');
-app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
+app.use(cors({ optionsSuccessStatus: 200 }));
 
-// http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
-// http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-
-// your first API endpoint... 
 app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+  res.json({ greeting: 'hello API' });
+});
+
+// Timestamp Microservice
+app.get("/api/:date?", function (req, res) {
+  let inputDate = req.params.date;
+  let dateObject;
+
+  // Check if the input date is empty
+  if (!inputDate) {
+    dateObject = new Date();
+  } else {
+    // Check if the input date is a Unix timestamp
+    if (/^\d+$/.test(inputDate)) {
+      dateObject = new Date(parseInt(inputDate));
+    } else {
+      // Try to parse the input date
+      dateObject = new Date(inputDate);
+    }
+  }
+
+  // Check if the parsed date is valid
+  if (isNaN(dateObject.getTime())) {
+    res.json({ error: "Invalid Date" });
+  } else {
+    // Create the response object
+    res.json({
+      unix: dateObject.getTime(),
+      utc: dateObject.toUTCString()
+    });
+  }
 });
 
 
-
-// listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
+var listener = app.listen(process.env.PORT || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
